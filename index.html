@@ -13,6 +13,7 @@
         <p id="test"></p>
         <div id="data"></div>
         <div id="tooltip"></div>
+        
     </body>
 </html>
 <script type="module">
@@ -32,13 +33,13 @@
             const tooltip = d3.select('#tooltip');
             // Chart height and width, and padding 
             const h = 600;
-            const w = 800;
+            const w = 900;
             const padding = 40;
 
             // Create a time scale for the data points and x axis
             const xTimeScale = d3.scaleTime()
                 .domain([new Date(data[0]['Year'] - 1), new Date(data[data.length - 1]['Year'])])
-                .range([padding, w - padding]);
+                .range([padding + 40, w - padding]);
                 // Create an x axis and if give it a format of ticks of whole numbers 'd'
             const xAxis = d3.axisBottom(xTimeScale).tickFormat(d3.format('d'));
 
@@ -48,7 +49,7 @@
             // Create a time scale for the data points and y axis
             const yTimeScale = d3.scaleTime()
                 .domain([d3.min(times), d3.max(times)])
-                .range([padding, h - 20])
+                .range([padding , h - 20])
                 // create a y axis and then set the tick format to format Date objects into minutes and seconds
             const yAxis = d3.axisLeft(yTimeScale).tickFormat(d3.timeFormat('%M:%S'));
 
@@ -69,7 +70,7 @@
 
             chartSVG
                 .append('g')
-                .attr('transform', `translate(${padding}, 0)`)
+                .attr('transform', `translate(${padding + 40}, 0)`)
                 .attr('id', 'y-axis')
                 .attr('color', 'white')
                 .call(yAxis);
@@ -115,10 +116,20 @@
                     });
                 })
 
+            chartSVG.append('text')
+                .text('Time in minutes')
+                .attr('fill', 'white')
+                .attr('x', -390)
+                .attr('y', 14)
+                .attr('transform', 'rotate(-90)')
+                .style('font-size', 20)
+                .style('word-spacing', 3)
+                .style('font-family', 'monospace')
+
             const legend = chartSVG
                 .append('g')
                 .attr('id', 'legend')
-                .attr('transform', `translate(${w - 180}, ${h - 450})`)
+                .attr('transform', `translate(${w - 250}, ${h - 450})`)
 
             legend.append('circle')
                 .attr('cx', 0)
@@ -130,7 +141,6 @@
                 .attr('x', 10)
                 .attr('y', 10)
                 .attr('fill', 'red')
-                .style('color', 'red')
                 .text('Accused of Doping')
                 .style('font-size', '16px')
             
@@ -144,7 +154,6 @@
                 .attr('x', 10)
                 .attr('y', 33)
                 .attr('fill', 'green')
-                .style('color', 'red')
                 .text('Not Accused of Doping')
                 .style('font-size', '16px')
     
