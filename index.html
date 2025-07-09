@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" width="device-width, initial-scale=1.0">
+        <title>Cyclist Dopping</title>
+        <meta name="description" content="number of cyclists who doped, made for a freeCodeCamp.org cert project">
+        <link rel="stylesheet" href="./styles.css">
+    </head>
+    <body>
+        <h1 id="title">Cyclist Doping</h1>
+        <h2>35 Fastest times up Alpe d'Huez and the few honest Cyclists</h2>
+        <p id="test"></p>
+        <div id="data"></div>
+        <div id="tooltip"></div>
+    </body>
+</html>
+<script type="module">
+    const test = document.getElementById('test');
+    import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+
+    // Fetch and sort array by time so I can create a X Axis
+    fetch("https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/cyclist-data.json")
+        .then(response => response.json())
+        .then(data => {
+            data = data.sort((a, b) => a['Year'] - b['Year']);
+            (data.forEach(obj => {
+                
+                    //test.innerHTML += `${JSON.stringify(obj)}<br/>`;
+                
+            }))
+            const tooltip = d3.select('#tooltip');
+            // Chart height and width, and padding 
+            const h = 600;
+            const w = 800;
+            const padding = 40;
+
+            // Create a time scale for the data points and x axis
+            const xTimeScale = d3.scaleTime()
+                .domain([new Date(data[0]['Year'] - 1), new Date(data[data.length - 1]['Year'])])
+                .range([padding, w - padding]);
+                // Create an x axis and if give it a format of ticks of whole numbers 'd'
+            const xAxis = d3.axisBottom(xTimeScale).tickFormat(d3.format('d'));
+
+            // Create a time parser and get all the cyclist times returned as an array of formatted times
+            const parseTime = d3.timeParse('%M:%S');
+            const times = data.map(d => parseTime(d['Time']));
+            // Create a time scale for the data points and y axis
+            const yTimeScale = d3.scaleTime()
+                .domain([d3.min(times), d3.max(times)])
+                .range([padding, h - 20])
+                // create a y axis and then set the tick format to format Date objects into minutes and seconds
+            const yAxis = d3.axisLeft(yTimeScale).tickFormat(d3.timeFormat('%M:%S'));
+
+            // Create the main chart
+            const chartSVG = d3.select('#data')
+                .append('svg')
+                .attr('width', w)
+                .attr('height', h)
+                .attr('class', 'chart');
+
+            // Place the x axis on the chart
+            chartSVG
+                .append('g')
+                .attr('transform', `translate(0, ${h - 20})`)
+                .attr('id', 'x-axis')
+                .attr('color', 'white')
+                .call(xAxis);
+
+            chartSVG
+                .append('g')
+                .attr('transform', `translate(${padding}, 0)`)
+                .attr('id', 'y-axis')
+                .attr('color', 'white')
+                .call(yAxis);
+
+            // Place the data points
+            chartSVG
+                .selectAll('circle')
+                .data(data)
+                .enter()
+                .append('circle')
+                .attr('class', 'dot')
+                .attr('data-xvalue', d => d['Year'])
+                .attr('data-yvalue', d => parseTime(d['Time']))
+                .attr('cx', d => xTimeScale(new Date(d['Year'])))
+                .attr('cy', d => yTimeScale(parseTime(d['Time'])))
+                .attr('r', 7)
+                .attr('fill', function(d) {
+                    return d['Doping'] === "" ? 'green' : 'red'
+                })
+                .on('mouseover', function(event, d) {
+                    tooltip
+                        .style('opacity', 1)
+                        .attr('data-year', d['Year'])
+                        .html(`${d['Year']} ${d['Time']}<br/>${d['Name']}<br/>${d['Doping']}`)
+                        .style('position', 'absolute')
+                        .style('color', 'white')
+                        .style('left', function() {
+                            console.log(event.pageX)
+                            return event.pageX + 80 < w  - padding ? (event.pageX + 40) + 'px' : (event.pageX - 150) + 'px'
+                        })
+                        .style('top', (event.pageY - 70) + 'px')
+                        .style('width', '100px')
+                        .style('background-color', 'black')
+                        .style('padding', '5px')
+
+                    d3.select(this).attr('fill', 'white');
+                })
+                .on('mouseout', function(event, d) {
+                    tooltip
+                        .style('opacity', 0)
+                    d3.select(this).attr('fill', function(d) {
+                    return d['Doping'] === "" ? 'green' : 'red'
+                    });
+                })
+
+            const legend = chartSVG
+                .append('g')
+                .attr('id', 'legend')
+                .attr('transform', `translate(${w - 180}, ${h - 450})`)
+
+            legend.append('circle')
+                .attr('cx', 0)
+                .attr('cy', 0)
+                .attr('fill', 'red')
+                .attr('r', 7)
+            
+            legend.append('text')
+                .attr('x', 10)
+                .attr('y', 10)
+                .attr('fill', 'red')
+                .style('color', 'red')
+                .text('Accused of Doping')
+                .style('font-size', '16px')
+            
+            legend.append('circle')
+                .attr('cx', 0)
+                .attr('cy', 23)
+                .attr('fill', 'green')
+                .attr('r', 7)
+            
+            legend.append('text')
+                .attr('x', 10)
+                .attr('y', 33)
+                .attr('fill', 'green')
+                .style('color', 'red')
+                .text('Not Accused of Doping')
+                .style('font-size', '16px')
+    
+        });
+
+
+</script>
